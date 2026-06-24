@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Panel Administrativo - SIREB VIPI</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- Cambiamos los emojis feos por FontAwesome para que se vea serio -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <style>
+    /* OJO: No tocar el nav-tabs porque se descuadra todo en la versión móvil */
+    .nav-tabs .nav-link.active { font-weight: bold; color: #003366; border-bottom: 3px solid #f39200; }
+    .nav-tabs .nav-link { color: #6c757d; border: none; }
+    .stat-card { background: #f8fafc; border-left: 5px solid #003366; }
+  </style>
+</head>
+<body class="bg-light">
+  <div class="container py-5">
+    <h2 class="text-center mb-4" style="color: #003366; font-weight: bold;">Panel de Control Administrativo</h2>
+    
+    <div class="card shadow-sm border-0 mx-auto" style="max-width: 800px;">
+      
+      <!-- Menú de pestañas (Costó hacer que el tab activo cambiara de color) -->
+      <ul class="nav nav-tabs px-3 pt-3" id="adminTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+          <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#prestamo" type="button"><i class="fa-solid fa-file-export mr-2"></i> Prestar Libro</button>
+        </li>
+        <li class="nav-item" role="presentation">
+          <button class="nav-link" data-bs-toggle="tab" data-bs-target="#devolucion" type="button"><i class="fa-solid fa-file-import mr-2"></i> Devoluciones</button>
+        </li>
+        <li class="nav-item" role="presentation">
+          <button class="nav-link" data-bs-toggle="tab" data-bs-target="#estadisticas" type="button"><i class="fa-solid fa-chart-column mr-2"></i> Estadísticas</button>
+        </li>
+      </ul>
+
+      <!-- Vistas de cada pestaña -->
+      <div class="tab-content p-4 border-top-0">
+        
+        <!-- VISTA 1: FORMULARIO DE PRÉSTAMOS -->
+        <div class="tab-pane fade show active" id="prestamo" role="tabpanel">
+          <h5 class="mb-3 text-secondary text-center">Registrar Nuevo Préstamo Circulante</h5>
+          <form id="formPrestamo">
+            <div class="mb-3">
+              <label class="form-label fw-bold">Cédula del Estudiante</label>
+              <input type="text" id="inputCedula" class="form-control" placeholder="Ej: 27123456" required>
+            </div>
+            <div class="mb-3">
+              <label class="form-label fw-bold">Fecha de Salida</label>
+              <input type="date" id="inputFecha" class="form-control" required>
+            </div>
+            <div class="mb-4">
+              <label class="form-label fw-bold">ID del Libro</label>
+              <input type="text" id="inputLibro" class="form-control" placeholder="Ej: LIB-001" required>
+            </div>
+            
+            <button type="button" class="btn w-100 fw-bold py-2" style="background-color: #f39200; color: white; border: none;" onclick="procesarPrestamo()">
+              Registrar Préstamo (Límite: 3 Días Hábiles)
+            </button>
+          </form>
+          <div id="alertaSistema" class="mt-3"></div>
+        </div>
+
+        <!-- VISTA 2: DEVOLUCIONES (La que más trabajo nos dio) -->
+        <div class="tab-pane fade" id="devolucion" role="tabpanel">
+          <h5 class="mb-3 text-secondary text-center">Gestión de Devoluciones</h5>
+          
+          <!-- Buscador y botón de lista de morosos -->
+          <div class="d-flex justify-content-between mb-3 gap-2">
+            <div class="input-group">
+              <input type="text" id="inputCedulaDev" class="form-control" placeholder="Cédula del estudiante...">
+              <button class="btn fw-bold text-white" style="background-color: #003366;" onclick="buscarPrestamos()"><i class="fas fa-search"></i> Buscar</button>
+            </div>
+            <!-- Parche para que la Licenciada vea a todos de un golpe -->
+            <button class="btn btn-outline-warning fw-bold text-dark" onclick="cargarTodosActivos()">Ver Deudores</button>
+          </div>
+          
+          <div id="alertaDevolucion" class="mb-3"></div>
+          <div id="contenedorPrestamosActivos" class="table-responsive"></div>
+        </div>
+
+        <!-- VISTA 3: ESTADÍSTICAS PARA MEMORIA Y CUENTA -->
+        <div class="tab-pane fade" id="estadisticas" role="tabpanel">
+          <h5 class="mb-3 text-secondary text-center">Métricas de Préstamos Circulantes</h5>
+          <div class="row mb-4">
+             <div class="col-md-5">
+                <label class="form-label fw-bold">Fecha Inicio</label>
+                <input type="date" id="fechaInicio" class="form-control">
+             </div>
+             <div class="col-md-5">
+                <label class="form-label fw-bold">Fecha Fin</label>
+                <input type="date" id="fechaFin" class="form-control">
+             </div>
+             <div class="col-md-2 d-flex align-items-end">
+                <button class="btn w-100 fw-bold text-white" style="background-color: #f39200;" onclick="cargarEstadisticas()">Filtrar</button>
+             </div>
+          </div>
+          
+          <div id="alertaEstadisticas"></div>
+          
+          <!-- Panel de tarjetas (oculto hasta que filtran para que no se vea feo el 0) -->
+          <div class="row text-center d-none" id="panelMetricas">
+             <div class="col-4">
+               <div class="p-3 stat-card rounded shadow-sm">
+                 <h2 class="text-primary fw-bold" id="statTotal">0</h2>
+                 <small class="text-muted fw-bold">Préstamos Totales</small>
+               </div>
+             </div>
+             <div class="col-4">
+               <div class="p-3 stat-card rounded shadow-sm border-warning">
+                 <h2 class="text-warning fw-bold" id="statActivos">0</h2>
+                 <small class="text-muted fw-bold">Aún Activos</small>
+               </div>
+             </div>
+             <div class="col-4">
+               <div class="p-3 stat-card rounded shadow-sm border-success">
+                 <h2 class="text-success fw-bold" id="statDevueltos">0</h2>
+                 <small class="text-muted fw-bold">Devueltos</small>
+               </div>
+             </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- CDN de Bootstrap -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  
+  <script>
+    // =======================================================================
+    // LÓGICA DE PRÉSTAMOS
+    // =======================================================================
+    
+    // Configuración inicial. Sudamos para que el datepicker no agarrara sábados
+    document.addEventListener("DOMContentLoaded", function() {
+      const campoFecha = document.getElementById("inputFecha");
+      const hoy = new Date().toISOString().split('T')[0]; 
+      
+      campoFecha.setAttribute("max", hoy); // No dejar que pongan fechas del futuro
+      
+      const fechaHoy = new Date(hoy + "T12:00:00");
+      if (fechaHoy.getDay() !== 0 && fechaHoy.getDay() !== 6) {
+        campoFecha.value = hoy; 
+      }
+
+      // Validar a la fuerza si intentan trampear el input
+      campoFecha.addEventListener("change", function() {
+        if (!this.value) return; 
+        const fechaSeleccionada = new Date(this.value + "T12:00:00");
+        const diaDeLaSemana = fechaSeleccionada.getDay(); 
+        if (diaDeLaSemana === 0 || diaDeLaSemana === 6) {
+          alert("⛔ La biblioteca no labora los fines de semana. Por favor, seleccione un día hábil (Lunes a Viernes).");
+          this.value = ""; 
+        }
+      });
+    });
+
+    function procesarPrestamo() {
+      const cedula = document.getElementById("inputCedula").value.trim();
+      const fecha = document.getElementById("inputFecha").value;
+      const libro = document.getElementById("inputLibro").value.trim();
+      const alerta = document.getElementById("alertaSistema");
+      
+      if(cedula === "" || fecha === "" || libro === "") {
+        alerta.innerHTML = `<div class="alert alert-warning">Por favor, llene todos los campos.</div>`;
+        return;
+      }
+      
+      alerta.innerHTML = `<div class="alert alert-info">Procesando préstamo y calculando días hábiles...</div>`;
+      
+      // Llamada asíncrona al Backend (Codigo.gs)
+      google.script.run
+        .withSuccessHandler(function(respuesta) {
+          if(respuesta.exito) {
+            alerta.innerHTML = `<div class="alert alert-success" style="white-space: pre-wrap;">${respuesta.mensaje}</div>`;
+            document.getElementById("inputCedula").value = "";
+            document.getElementById("inputLibro").value = "";
+          } else {
+            alerta.innerHTML = `<div class="alert alert-danger">${respuesta.mensaje}</div>`;
+          }
+        })
+        .withFailureHandler(function(error) {
+           alerta.innerHTML = `<div class="alert alert-danger fw-bold">❌ Error Técnico: ${error.message} (Revisa la consola)</div>`;
+        })
+        .registrarPrestamoEnSheet(cedula, libro, fecha);
+    }
+
+    // =======================================================================
+    // LÓGICA DE DEVOLUCIONES
+    // =======================================================================
+    function buscarPrestamos() {
+      const cedula = document.getElementById("inputCedulaDev").value.trim();
+      const contenedor = document.getElementById("contenedorPrestamosActivos");
+      const alerta = document.getElementById("alertaDevolucion");
+      
+      contenedor.innerHTML = "";
+      if(!cedula) return alerta.innerHTML = `<div class="alert alert-warning">Ingrese una cédula válida.</div>`;
+      alerta.innerHTML = `<div class="alert alert-info">Buscando expediente en la BD...</div>`;
+      
+      google.script.run.withSuccessHandler(res => {
+         alerta.innerHTML = "";
+         if(!res.exito) {
+            alerta.innerHTML = `<div class="alert alert-warning">${res.mensaje}</div>`;
+            return;
+         }
+         renderizarTablaDevoluciones(res.prestamos, false);
+      }).buscarPrestamosParaDevolucion(cedula);
+    }
+
+    // Trae a todos los que deben libros (El botón de la Licenciada)
+    function cargarTodosActivos() {
+      const contenedor = document.getElementById("contenedorPrestamosActivos");
+      const alerta = document.getElementById("alertaDevolucion");
+      
+      contenedor.innerHTML = "";
+      alerta.innerHTML = `<div class="alert alert-info">Cargando lista general de deudores...</div>`;
+      
+      google.script.run.withSuccessHandler(activos => {
+         alerta.innerHTML = "";
+         if(activos.length === 0) {
+            alerta.innerHTML = `<div class="alert alert-success fw-bold">¡Excelente! No hay préstamos pendientes en el sistema.</div>`;
+            return;
+         }
+         renderizarTablaDevoluciones(activos, true);
+      }).obtenerTodosLosPrestamosActivos();
+    }
+
+    // Dibuja la tabla HTML dinámicamente
+    function renderizarTablaDevoluciones(prestamos, mostrarCedula) {
+       const contenedor = document.getElementById("contenedorPrestamosActivos");
+       const hoy = new Date().toISOString().split('T')[0]; // Capturar hoy para el MAX de la fecha
+       
+       let tabla = `<table class="table table-bordered table-hover mt-3 text-center align-middle" style="font-size: 0.9rem;">
+                      <thead class="table-light">
+                        <tr>
+                          <th>ID Préstamo</th>
+                          ${mostrarCedula ? '<th>Cédula</th>' : ''}
+                          <th>Libro</th>
+                          <th>Vence</th>
+                          <th style="width: 160px;">Fecha Devolución</th>
+                          <th>Acción</th>
+                        </tr>
+                      </thead><tbody>`;
+       prestamos.forEach(p => {
+          // NOTA PARA NEUDY: Ya configuré el backend para que envíe "p.fechaSalida" formateada como YYYY-MM-DD. 
+          // Si cambias algo de eso se rompe el atributo 'min' del input y te deja poner fechas viejas.
+          const minDate = p.fechaSalida ? p.fechaSalida : "";
+
+          tabla += `<tr>
+                      <td class="fw-bold">${p.idPrestamo}</td>
+                      ${mostrarCedula ? `<td class="fw-bold">${p.cedula}</td>` : ''}
+                      <td class="fw-bold text-primary">${p.idLibro}</td>
+                      <td>${p.fechaVencimiento}</td>
+                      <td>
+                        <input type="date" id="fechaDev_${p.idPrestamo}" class="form-control form-control-sm" value="${hoy}" max="${hoy}" ${minDate ? `min="${minDate}"` : ''}>
+                      </td>
+                      <td>
+                        <button class="btn btn-sm text-white fw-bold w-100" style="background-color: #003366;" onclick="ejecutarDevolucion('${p.idPrestamo}')">
+                          Devolver
+                        </button>
+                      </td>
+                    </tr>`;
+       });
+       tabla += `</tbody></table>`;
+       contenedor.innerHTML = tabla;
+    }
+
+    // Dispara el evento para matar el préstamo
+    function ejecutarDevolucion(idPrestamo) {
+       // 1. Sacamos la fecha exacta que seleccionaron en esa fila
+       const fechaSeleccionada = document.getElementById(`fechaDev_${idPrestamo}`).value;
+       
+       if(!fechaSeleccionada) {
+           alert("Por favor, seleccione una fecha de devolución válida.");
+           return;
+       }
+
+       document.getElementById("alertaDevolucion").innerHTML = `<div class="alert alert-info">Registrando devolución con fecha ${fechaSeleccionada}...</div>`;
+       
+       google.script.run.withSuccessHandler(res => {
+          document.getElementById("alertaDevolucion").innerHTML = `<div class="alert alert-${res.exito ? 'success' : 'danger'}">${res.mensaje}</div>`;
+          document.getElementById("contenedorPrestamosActivos").innerHTML = ""; // Limpiar para que no le den dos veces
+       // 2. Mandar el ID y la fecha al Codigo.gs
+       }).procesarDevolucionEnSheet(idPrestamo, fechaSeleccionada); 
+    }
+
+    // =======================================================================
+    // LÓGICA DE ESTADÍSTICAS
+    // =======================================================================
+    function cargarEstadisticas() {
+       const ini = document.getElementById("fechaInicio").value;
+       const fin = document.getElementById("fechaFin").value;
+       const alerta = document.getElementById("alertaEstadisticas");
+       const panel = document.getElementById("panelMetricas");
+       
+       if(!ini || !fin) return alerta.innerHTML = `<div class="alert alert-warning">Seleccione ambas fechas.</div>`;
+       
+       alerta.innerHTML = `<div class="alert alert-info">Calculando métricas en el servidor...</div>`;
+       panel.classList.add("d-none"); // Esconder tarjetas viejas
+
+       google.script.run.withSuccessHandler(stats => {
+          alerta.innerHTML = "";
+          document.getElementById("statTotal").innerText = stats.total;
+          document.getElementById("statActivos").innerText = stats.activos;
+          document.getElementById("statDevueltos").innerText = stats.devueltos;
+          panel.classList.remove("d-none"); // Mostrar de nuevo
+       }).obtenerEstadisticasRango(ini, fin);
+    }
+  </script>
+</body>
+</html>

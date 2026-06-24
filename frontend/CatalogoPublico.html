@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Catálogo Público - SIREB VIPI</title>
+    <style>
+        :root {
+            --unellez-navy: #003366;
+            --unellez-orange: #f39200;
+            --bg-light: #f4f7f6;
+            --text-dark: #333333;
+        }
+
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: var(--bg-light); color: var(--text-dark); margin: 0; padding: 0; }
+        header { background-color: var(--unellez-navy); color: white; padding: 20px; text-align: center; border-bottom: 5px solid var(--unellez-orange); }
+        .container { max-width: 900px; margin: 30px auto; padding: 30px; background: white; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
+        .search-section { text-align: center; margin-bottom: 30px; }
+        .search-box { display: flex; gap: 10px; margin-top: 15px; }
+        input[type="text"] { flex: 1; padding: 12px 15px; border: 2px solid #e2e8f0; border-radius: 6px; outline: none; }
+        button { background-color: var(--unellez-orange); color: white; border: none; padding: 12px 25px; border-radius: 6px; cursor: pointer; font-weight: bold; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { padding: 15px; text-align: left; border-bottom: 1px solid #edf2f7; }
+        th { background-color: var(--unellez-navy); color: white; }
+        .tag { padding: 5px 10px; border-radius: 20px; font-size: 12px; font-weight: bold; }
+        .tag-disponible { background-color: #c8e6c9; color: #2e7d32; }
+        .tag-prestado { background-color: #ffcdd2; color: #c62828; }
+        .tag-default { background-color: #e0e0e0; color: #616161; }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>SIREB-VIPI</h1>
+        <p>Biblioteca "Ramón Villegas Izquiel" - Catálogo Digital</p>
+    </header>
+
+    <div class="container">
+        <div class="search-section">
+            <h2>Consulta de Disponibilidad</h2>
+            <div class="search-box">
+                <input type="text" id="txtBusqueda" placeholder="Buscar por Título, Autor o Cota LCC...">
+                <button onclick="ejecutarBusqueda()">Buscar</button>
+            </div>
+        </div>
+        <div id="resultadosContainer"></div>
+    </div>
+
+    <script>
+        function ejecutarBusqueda() {
+            const input = document.getElementById('txtBusqueda').value;
+            const contenedor = document.getElementById('resultadosContainer');
+            
+            // Ignorar si le dan al boton con el input vacio
+            if (input.trim() === "") return;
+            
+            contenedor.innerHTML = "<p style='text-align:center;'>Consultando en la BD...</p>";
+
+            google.script.run
+                .withSuccessHandler(function(libros) {
+                    if (libros.length === 0) {
+                        contenedor.innerHTML = "<p style='text-align:center;'>No se encontraron resultados.</p>";
+                        return;
+                    }
+
+                    let tablaHTML = `<table><tr><th>Título</th><th>Autor</th><th>Cota LCC</th><th>Estado</th></tr>`;
+
+                    libros.forEach(libro => {
+                        // Cambiar color de la etiqueta segun disponibilidad
+                        let cssClass = "tag-default";
+                        if (libro.estado.toLowerCase().includes("disponible")) cssClass = "tag-disponible";
+                        else if (libro.estado.toLowerCase().includes("prestado")) cssClass = "tag-prestado";
+
+                        // Armar la fila (no cambiar el orden de las variables)
+                        tablaHTML += `<tr>
+                            <td><strong>${libro.titulo}</strong></td>
+                            <td>${libro.autor}</td>
+                            <td>${libro.lcc}</td>
+                            <td><span class="tag ${cssClass}">${libro.estado}</span></td>
+                        </tr>`;
+                    });
+
+                    tablaHTML += `</table>`;
+                    contenedor.innerHTML = tablaHTML;
+                })
+                .buscarLibrosEnSheet(input);
+        }
+    </script>
+</body>
+</html>

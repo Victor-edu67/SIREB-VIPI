@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        navy: '#003366',
+                        orange: '#f39200',
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-gray-50 text-gray-800 font-sans antialiased flex flex-col min-h-screen">
+
+    <!-- Hero Section -->
+    <header class="bg-gradient-to-br from-navy to-gray-900 text-white py-16 text-center border-b-4 border-orange shadow-lg">
+        <h1 class="text-4xl md:text-5xl font-extrabold tracking-tight mb-2 drop-shadow-md">
+            SIREB-VIPI
+        </h1>
+        <p class="text-lg md:text-xl font-light text-gray-300 mb-1">
+            Sistema de Registro y Estadísticas de Biblioteca
+        </p>
+        <p class="text-orange font-medium">
+            Biblioteca "Ramón Villegas Izquiel"
+        </p>
+    </header>
+
+    <!-- Contenido Principal -->
+    <main class="flex-grow container mx-auto px-4 py-12">
+        <div class="flex flex-col md:flex-row justify-center items-stretch gap-8 max-w-4xl mx-auto">
+            
+            <!-- Tarjeta 1: Catálogo Público -->
+            <div class="flex-1 bg-white rounded-xl shadow-md hover:shadow-xl transition-shadow duration-300 p-8 text-center border border-gray-100 flex flex-col justify-between group">
+                <div>
+                    <div class="w-20 h-20 mx-auto bg-gray-100 rounded-full flex items-center justify-center text-navy text-3xl mb-6 group-hover:bg-orange group-hover:text-white transition-colors duration-300">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                    </div>
+                    <h2 class="text-2xl font-bold text-navy mb-3">Catálogo Digital</h2>
+                    <p class="text-gray-600 mb-8 leading-relaxed">
+                        Accede al inventario actualizado de libros, revistas y trabajos de grado.
+                    </p>
+                </div>
+                
+                <a href="https://script.google.com/macros/s/AKfycby3nA_IiDCj6HqtFDGzv_rbBIuoOlfY-ZKTDtyTOpdRzGv-x_6zg2KC8QBHM1wlFT6B/exec" target="_blank" class="block w-full py-3 px-4 bg-navy text-white font-semibold rounded-lg hover:bg-opacity-90 transition-all border border-navy">
+                    <i class="fa-solid fa-book-open mr-2"></i> Buscar Libros
+                </a>
+            </div>
+
+            <!-- Tarjeta 2: Acceso al Sistema -->
+            <div class="flex-1 bg-white rounded-xl shadow-md hover:shadow-xl transition-shadow duration-300 p-8 text-center border border-gray-100 flex flex-col justify-between group">
+                <div>
+                    <div class="w-20 h-20 mx-auto bg-gray-100 rounded-full flex items-center justify-center text-navy text-3xl mb-6 group-hover:bg-orange group-hover:text-white transition-colors duration-300">
+                        <i class="fa-solid fa-user-graduate"></i>
+                    </div>
+                    <h2 class="text-2xl font-bold text-navy mb-3">Portal del Estudiante</h2>
+                    <p class="text-gray-600 mb-8 leading-relaxed">
+                        Revisa tus préstamos activos, estado de solvencia y genera tu PDF para actos de grado.
+                    </p>
+                </div>
+                
+                <a href="https://script.google.com/macros/s/AKfycbw8EG_YwzEuGnDyJYAMmv05DJh552MakICELf2AuVK-n58QQLgp-U6LoB8Gb9TdLUtv/exec" target="_blank" class="block w-full py-3 px-4 bg-orange text-white font-semibold rounded-lg hover:bg-yellow-600 transition-all border border-orange shadow-sm">
+                    <i class="fa-brands fa-google mr-2"></i> Iniciar Sesión / Acceder
+                </a>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- Pie de página -->
+    <footer class="bg-gray-800 text-gray-400 py-6 text-center text-sm">
+        <p>Universidad Nacional Experimental de los Llanos Occidentales "Ezequiel Zamora"</p>
+    </footer>
+
+</body>
+</html>
